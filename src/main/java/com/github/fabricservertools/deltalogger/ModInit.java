@@ -54,7 +54,23 @@ public class ModInit implements DedicatedServerModInitializer {
 	}
 
 	private void onServerSetup(MinecraftServer server) {
-		dm = DatabaseManager.create(server.getSavePath(WorldSavePath.ROOT).toFile());
+		File dataBaseSavePath;
+		String dbSavePathStr = CONFIG.getProperty("db_save_path", "");
+		String dbSaveAbsPathStr = CONFIG.getProperty("db_save_path_absolute", "");
+		try {
+		    if (!dbSaveAbsPathStr.equals("")) {
+			dataBaseSavePath = new File(dbSaveAbsPathStr);
+		    } else if (!dbSavePathStr.equals("")){
+			dataBaseSavePath = new File(server.getRunDirectory(), dbSavePathStr);
+		    } else {
+			dataBaseSavePath = server.getSavePath(WorldSavePath.ROOT).toFile();
+		    }
+		    dataBaseSavePath.mkdirs();
+		} catch (Exception e) {
+		    dataBaseSavePath = server.getSavePath(WorldSavePath.ROOT).toFile();
+		}
+		dm = DatabaseManager.create(dataBaseSavePath);
+		//dm = DatabaseManager.create(server.getSavePath(WorldSavePath.ROOT).toFile());
 		String portString = CONFIG.getProperty("webapp_port", "8080");
 		try {
 			if(CONFIG.getProperty("use_webapp", "true").equals("true")) {
